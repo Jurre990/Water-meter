@@ -4,9 +4,11 @@ import shelve
 import json
 import RPi.GPIO as gpio
 from datetime import date, timedelta
+from flask_cors import CORS, cross_origin
 
 app = flask.Flask(__name__)
-
+cors = CORS(app)
+app.config["CORS_HEADERS"] = "Content-Type" 
 
 @app.route("/", methods=["GET"])
 def main():
@@ -37,6 +39,24 @@ def last_seven_days():
         "saturday": str(thisWeekValues[5]),
         "sunday": str(thisWeekValues[6]),
     }, 200, {"Access-Control-Allow-Origin": "*"}
+    
+
+@app.route("/timer", methods=["GET", "PUT"])
+def timer():
+    db = shelve.open("/home/pi/Desktop/timer")
+    if flask.request.method == "PUT":
+        data = json.loads(flask.request.data)
+        db["showerTime"] = data["showerTime"]
+        db.close()
+        return ""
+    if flask.request.method == "GET":
+        if "showerTime" in db.keys():
+            time = db.get("showerTime")
+            db.close()
+            return {"isSet": True, "time": time}, 200, {"Access-Control-Allow-Origin": "*"}
+        else:
+            db.close()
+            return {"isSet": False, "time": 0}, 200, {"Access-Control-Allow-Origin": "*"}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)
