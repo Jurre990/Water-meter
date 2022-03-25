@@ -7,6 +7,7 @@ import board
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 import shelve
+import RPi.GPIO as GPIO
 
 def UpdateDatabase(count):
     d = shelve.open("/home/pi/Desktop/database")
@@ -44,4 +45,23 @@ while True:
             timeVar = time.time()
     else:
         magnetClose = False
+        
+    #timer buzzer
+    with shelve.open("/home/pi/Desktop/timer") as db:
+        start_time = db["start_time"]
+        running = db["running"]
+        shower_time = db["showerTime"]
+    if running==True:
+        print("runninh")
+        now_time = time.time()
+        if (now_time-start_time > shower_time):
+            triggerPIN = 14
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(triggerPIN,GPIO.OUT)
+            buzzer = GPIO.PWM(triggerPIN, 1200) # Set frequency to 1 Khz
+            buzzer.start(1) # Set dutycycle to 10
+            time.sleep(10)
+            buzzer.stop()
+            GPIO.cleanup()
+                    
     time.sleep(0.1)
