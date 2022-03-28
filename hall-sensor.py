@@ -12,11 +12,12 @@ import RPi.GPIO as GPIO
 def UpdateDatabase(count):
     d = shelve.open("/home/pi/Desktop/database")
     print(count)
+    print("liter: "+str(count/32))
     d["totaal"] += count
     try:
-        d[str(date.today())] += count
+        d[str(date.today())] += count/32
     except:
-        d[str(date.today())] = count
+        d[str(date.today())] = count/32
 
     d.close()
 
